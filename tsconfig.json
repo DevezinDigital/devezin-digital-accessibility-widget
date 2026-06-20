@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationDir": "dist",
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "isolatedModules": true
+  },
+  "include": [
+    "index.ts",
+    "constants.ts",
+    "eslint.ts",
+    "test.ts",
+    "verify.ts",
+    "context",
+    "types",
+    "verify"
+  ],
+  "exclude": ["node_modules", "dist", "templates", "bin"]
+}

@@ -1,0 +1,51 @@
+name: "Accessibility checks"
+description: >-
+  Runs the accessibility verification stack for a consuming site: the
+  jsx-a11y ESLint preset, the axe test harness, and the structural checklist.
+  Assumes the project's own `lint` and `test` scripts include them (the
+  recommended wiring from the package README).
+
+inputs:
+  working-directory:
+    description: "Directory to run the checks in."
+    required: false
+    default: "."
+  node-version:
+    description: "Node.js version."
+    required: false
+    default: "20"
+  install-command:
+    description: "Dependency install command."
+    required: false
+    default: "npm ci"
+  lint-command:
+    description: "Lint command (should include the jsx-a11y preset)."
+    required: false
+    default: "npm run lint"
+  test-command:
+    description: "Test command (should include the axe + checklist tests)."
+    required: false
+    default: "npm test"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.install-command }}
+
+    - name: Lint (jsx-a11y)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.lint-command }}
+
+    - name: Accessibility tests (axe + checklist)
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ inputs.test-command }}

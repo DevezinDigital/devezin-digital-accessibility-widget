@@ -1,0 +1,287 @@
+/* =============================================================================
+   accessibility.css — styles for the accessibility widget + preference classes.
+
+   Import once (e.g. in app/layout.tsx or your globals.css):
+       import "@/styles/accessibility.css";
+
+   Two parts:
+   1. PREFERENCE CLASSES — set on <html> by the package provider. These drive
+      the visual changes; they're written to be drop-in for any site.
+   2. WIDGET + SKIP-LINK STYLES — themeable via the CSS variables below, so you
+      can match each site by overriding a handful of custom properties.
+   ============================================================================= */
+
+/* ─── Theme tokens (override per site) ────────────────────────────────────── */
+:root {
+  --a11y-accent: #2563eb;
+  --a11y-accent-contrast: #ffffff;
+  --a11y-panel-bg: #ffffff;
+  --a11y-panel-fg: #1a1a1a;
+  --a11y-muted-fg: #555555;
+  --a11y-border: #d4d4d4;
+  --a11y-switch-off: #c7c7c7;
+  --a11y-radius: 12px;
+  --a11y-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  --a11y-z: 2147483000;
+
+  /* Readable-font stack. Point this at a loaded high-legibility face (e.g.
+     Atkinson Hyperlegible via next/font) for the best result. */
+  --a11y-readable-font:
+    "Atkinson Hyperlegible", Verdana, Tahoma, system-ui, sans-serif;
+}
+
+/* =============================================================================
+   1. PREFERENCE CLASSES (set on <html> by AccessibilityProvider)
+   ============================================================================= */
+
+/* High contrast — generic boost that works without knowing the site's tokens.
+   Combines safely with grayscale (see the combined rule below).
+
+   FOR BEST RESULTS: override this block with your design system's high-contrast
+   token values instead of relying on the filter, e.g.
+       html.high-contrast { --background: #fff; --foreground: #000; ... }
+*/
+html.high-contrast {
+  filter: contrast(1.3);
+}
+html.high-contrast *:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+html.high-contrast a {
+  text-decoration: underline;
+}
+
+/* Grayscale. Applied to the root only: CSS filters create a containing block
+   for fixed-position descendants everywhere EXCEPT <html>, so putting this on
+   <body> would break sticky headers and the floating widget. */
+html.grayscale {
+  filter: grayscale(1);
+}
+/* Combined so both filters apply when both classes are present. */
+html.high-contrast.grayscale {
+  filter: grayscale(1) contrast(1.3);
+}
+
+/* Reduce motion. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Same rules straight from the OS preference, so motion is suppressed even
+   before hydration and without JS. `html:not(.motion-ok)` lets an explicit
+   "motion on" choice in the widget win over the OS setting. */
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-ok) *,
+  html:not(.motion-ok) *::before,
+  html:not(.motion-ok) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Readable font. */
+html.readable-font,
+html.readable-font body {
+  font-family: var(--a11y-readable-font) !important;
+}
+
+/* Text spacing per WCAG 1.4.12 (content must survive these values). */
+html.text-spacing * {
+  line-height: 1.5 !important;
+  letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important;
+}
+html.text-spacing p {
+  margin-bottom: 2em !important;
+}
+
+/* Don't rely on color alone to convey links (WCAG 1.4.1). */
+html.underline-links a {
+  text-decoration: underline !important;
+  text-underline-offset: 0.2em;
+}
+
+/* Keep focused/anchored elements clear of a sticky header (WCAG 2.4.11). Adjust
+   to your header height. */
+html {
+  scroll-padding-top: 5rem;
+}
+
+/* =============================================================================
+   2. SKIP LINK
+   ============================================================================= */
+
+.a11y-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: calc(var(--a11y-z) + 1);
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 var(--a11y-radius) 0;
+  background: var(--a11y-accent);
+  color: var(--a11y-accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+}
+.a11y-skip-link:focus {
+  left: 0;
+  outline: 3px solid var(--a11y-accent-contrast);
+  outline-offset: -3px;
+}
+
+/* =============================================================================
+   3. WIDGET
+   ============================================================================= */
+
+.a11y-widget {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: var(--a11y-z);
+}
+
+.a11y-widget__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 1px solid var(--a11y-border);
+  background: var(--a11y-panel-bg);
+  color: var(--a11y-panel-fg);
+  box-shadow: var(--a11y-shadow);
+  cursor: pointer;
+}
+.a11y-widget__trigger:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+
+.a11y-widget__panel {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  width: 18rem;
+  max-width: calc(100vw - 2rem);
+  padding: 1rem;
+  border-radius: var(--a11y-radius);
+  border: 1px solid var(--a11y-border);
+  background: var(--a11y-panel-bg);
+  color: var(--a11y-panel-fg);
+  box-shadow: var(--a11y-shadow);
+}
+
+.a11y-widget__title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.a11y-widget__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.a11y-widget__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.a11y-widget__label {
+  font-size: 0.9rem;
+}
+
+.a11y-widget__statement {
+  display: block;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--a11y-border);
+  font-size: 0.85rem;
+  color: var(--a11y-muted-fg);
+}
+.a11y-widget__statement:hover {
+  color: var(--a11y-panel-fg);
+}
+
+/* ─── Switch ──────────────────────────────────────────────────────────────── */
+.a11y-switch {
+  flex: 0 0 auto;
+  position: relative;
+  width: 2.5rem;
+  height: 1.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: var(--a11y-switch-off);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.a11y-switch[aria-checked="true"] {
+  background: var(--a11y-accent);
+}
+.a11y-switch:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+.a11y-switch__thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  transition: transform 0.15s ease;
+}
+.a11y-switch[aria-checked="true"] .a11y-switch__thumb {
+  transform: translateX(1.1rem);
+}
+
+/* ─── Stepper ─────────────────────────────────────────────────────────────── */
+.a11y-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.a11y-stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--a11y-border);
+  background: var(--a11y-panel-bg);
+  color: var(--a11y-panel-fg);
+  cursor: pointer;
+}
+.a11y-stepper__btn:disabled,
+.a11y-stepper__btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.a11y-stepper__btn:focus-visible {
+  outline: 3px solid var(--a11y-accent);
+  outline-offset: 2px;
+}
+.a11y-stepper__value {
+  min-width: 2.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
